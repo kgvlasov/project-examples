@@ -21,11 +21,9 @@ import sys
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
-
 time_delta = 1 # параметр для запуска скрипта. При указании N дней, скрипт запустится за дату, равную N дней назад.
 td = date.today()
 t_delta = timedelta(days=time_delta)
-
 
 def get_s3_conn(aws_s3_bucket ="meal-analytics-dev-adjust"):
 
@@ -40,7 +38,6 @@ def get_s3_conn(aws_s3_bucket ="meal-analytics-dev-adjust"):
     )
     bucket = s3.Bucket(aws_s3_bucket)
     return bucket
-
 
 def get_sql_conn():
     creds = {'usr': os.environ['db_user'],
@@ -62,8 +59,7 @@ def write_to_sql(data, base = 'qonversion_export_csv'):
 def get_data():
     global td
     global t_delta
-    import time
-    
+    import time   
     os.system("cp /opt/chrome_headless_only/chromedriver /tmp/chromedriver")
     os.system("cp /opt/chrome_headless_only/headless-chromium /tmp/headless-chromium")
     os.chmod("/tmp/chromedriver", 0o777)
@@ -77,8 +73,6 @@ def get_data():
     options.add_argument('--ignore-certificate-errors')
     options.add_argument('--window-size=1920,1080')
     options.add_argument('--disable-notifications')
-
-
     options.add_experimental_option("prefs", {
       "download.default_directory": "/tmp",
       "download.prompt_for_download": False,
@@ -92,7 +86,6 @@ def get_data():
     yesterday = str(date.today() - timedelta(days=time_delta))[8:10]
     month_abbr = (date.today() - timedelta(days=time_delta)).strftime('%B')[:3]
     year = date.today().year
-    
     
     #Авторизация
     driver.find_element_by_xpath('/html/body/div[1]/section/div/div/div/div/div/form/div[1]/input').send_keys(os.environ['qonv_acnt_log'])
@@ -160,8 +153,7 @@ def have_problem_with_data():
     global t_delta
     os.listdir('/tmp')
     qonv_data = pandas.read_csv('downloaded_data.csv')
-    
-    
+      
     query = '''
     select *
     from qonversion_raw qr
@@ -187,8 +179,7 @@ def have_problem_with_data():
         print('разница в custom_user_id', cust_user_count)
         print('разница в device_id', device_num)
         return True
-
-
+    
 def slack_failed_task(context):
     slack_token = os.environ['slack_bot_token']
     client = WebClient(token=slack_token)
@@ -209,7 +200,6 @@ def start_testing():
         slack_failed_task("Есть расхождения между данными в базе и в отчете из Qonversion за " + str(td - t_delta)[:10])
     else:
         print('Данные за', str(td - t_delta)[:10],' совпадают')
-
 
 def lambda_handler(event, context):
 
